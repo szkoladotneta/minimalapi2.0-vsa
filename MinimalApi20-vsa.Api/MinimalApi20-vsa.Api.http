@@ -1,0 +1,6 @@
+@MinimalApi20_vsa.Api_HostAddress = http://localhost:5145
+
+#GET {{MinimalApi20_vsa.Api_HostAddress}}/weatherforecast/
+#Accept: application/json
+
+###
