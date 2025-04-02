@@ -1,19 +1,17 @@
 using FluentValidation;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using MinimalApi20_vsa.Api.Common.Exceptions;
-using MinimalApi20_vsa.Api.Common.Helpers;
 using MinimalApi20_vsa.Api.Common.Models;
 using MinimalApi20_vsa.Api.Domain;
-using MinimalApi20_vsa.Api.Domain.Entities;
 using MinimalApi20_vsa.Api.Endpoints;
-using MinimalApi20_vsa.Api.Endpoints.Filters;
 
 namespace MinimalApi20_vsa.Api.Features.Products;
 
-public static class CreateProduct
+public static class UpdateProduct
 {
     public record Request(string Name, decimal Price, int? CategoryId);
-    public record Response(int Id);
+    public record Response(int Id, string Name, decimal Price, int? CategoryId);
 
     public sealed class Validator : AbstractValidator<Request>
     {
@@ -32,14 +30,21 @@ public static class CreateProduct
     {
         public void MapEndpoint(IEndpointRouteBuilder app)
         {
-            app.MapStandardPostWithHateoas<Request, HateoasResponse<Response>>("", Handler)
-                .WithName("CreateProduct")
-                .WithDescription("Creates a new product");
+            app.MapStandardPutWithValidation<Request>("/{id}", Handler)
+                .WithName("UpdateProduct")
+                .WithDescription("Updates an existing product");
         }
     }
-    
-    public static async Task<IResult> Handler(Request request, AppDbContext context, HttpContext httpContext)
+
+    public static async Task<Results<NoContent, NotFound>> Handler(int id, Request request, AppDbContext context)
     {
+        var product = await context.Products.FindAsync(id);
+        
+        if (product is null)
+        {
+            throw new NotFoundException($"Product with id {id} not found");
+        }
+
         if (request.CategoryId.HasValue)
         {
             var categoryExists = await context.Categories.AnyAsync(c => c.Id == request.CategoryId.Value);
@@ -49,22 +54,13 @@ public static class CreateProduct
             }
         }
 
-        var product = new Product 
-        { 
-            Name = request.Name, 
-            Price = request.Price,
-            CategoryId = request.CategoryId
-        };
+        // Update product properties
+        product.Name = request.Name;
+        product.Price = request.Price;
+        product.CategoryId = request.CategoryId;
 
-        context.Products.Add(product);
         await context.SaveChangesAsync();
 
-        var response = new Response(product.Id);
-        
-        var hateoasResponse = new HateoasResponse<Response>(response);
-        
-        hateoasResponse.AddStandardResourceLinks("Products", product.Id);
-        
-        return Results.Created($"/api/products/{product.Id}", hateoasResponse);
+        return TypedResults.NoContent();
     }
 }

@@ -12,7 +12,6 @@ public static class EndpointRegistrationExtensions
 {
     public static IServiceCollection AddEndpoints(this IServiceCollection services, Assembly assembly)
     {
-        // Register IEndpoint implementations
         var endpointTypes = assembly.GetTypes()
             .Where(t => !t.IsAbstract && !t.IsInterface && typeof(IEndpoint).IsAssignableFrom(t));
             
@@ -21,7 +20,6 @@ public static class EndpointRegistrationExtensions
             services.AddTransient(typeof(IEndpoint), type);
         }
         
-        // Register IEndpointGroup implementations
         var groupTypes = assembly.GetTypes()
             .Where(t => !t.IsAbstract && !t.IsInterface && typeof(IEndpointGroup).IsAssignableFrom(t));
             
@@ -40,7 +38,6 @@ public static class EndpointRegistrationExtensions
             
         var endpoints = app.Services.GetServices<IEndpoint>().ToList();
         
-        // Group endpoints by attribute
         var groupedEndpoints = new Dictionary<string, List<IEndpoint>>();
         var ungroupedEndpoints = new List<IEndpoint>();
         
@@ -63,7 +60,6 @@ public static class EndpointRegistrationExtensions
             }
         }
         
-        // Map grouped endpoints
         foreach (var group in groupedEndpoints)
         {
             string groupName = group.Key;
@@ -72,20 +68,17 @@ public static class EndpointRegistrationExtensions
             string groupRoute = $"api/{groupName.ToLowerInvariant()}";
             var routeGroupBuilder = app.MapGroup(groupRoute);
             
-            // Apply group configuration if exists
             if (endpointGroups.TryGetValue(groupName, out var endpointGroup))
             {
                 endpointGroup.ConfigureGroup(routeGroupBuilder);
             }
             
-            // Map endpoints to group
             foreach (var endpoint in groupEndpoints)
             {
                 endpoint.MapEndpoint(routeGroupBuilder);
             }
         }
         
-        // Map ungrouped endpoints
         foreach (var endpoint in ungroupedEndpoints)
         {
             endpoint.MapEndpoint(app);

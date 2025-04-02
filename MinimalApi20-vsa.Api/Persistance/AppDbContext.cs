@@ -10,4 +10,5 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Product> Products { get; init; }
+    public DbSet<Category> Categories { get; init; }
 }

@@ -1,5 +1,3 @@
-using System;
-
 namespace MinimalApi20_vsa.Api.Endpoints;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]

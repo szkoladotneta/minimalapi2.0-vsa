@@ -1,18 +1,18 @@
 # Technical architecture
 
 This section covers the technical layout of the application and how to work with various parts
-of the code.
+of the code. The whole api application is inside MinimalApi20-vsa.Api
 
 ## Working with use-cases
 
-This project follows vertical slice architecture. Each use-case gets its own class under the feature
+This project follows vertical slice architecture. Each use-case gets its own class under the Features
 folder. The associated request and response objects are contained as subclass within the use-case
 class. The use-case class has the name of the use case, for example:
 
-- Creating a new conversation is implemented in Conversations/CreateConversation.cs
-- Sending a message is implemented in Conversations/SendMessage.cs
-- Uploading attachments is implemented in Attachments/UploadAttachment.cs
+- Creating a new product is implemented in Products/CreateProduct.cs
+- Getting a product is implemented in Products/GetProduct.cs
 
+- Each feature should be grouped into minimal api MapGroup with proper Openapi tags, and used extensions methods just like for products it is implemented in Products/ProductsGroup.cs
 
 
 ## Validating input to the use-cases
@@ -27,9 +27,16 @@ The frontend is implemented as a single page application that talks to the minim
 
 The whole request lifecycle happens inside the request handlers. This makes debugging and testing the code easier.
 
+## Database
+
+Database connection is made using EF Core. DbContext is defined in Persistance/AppDbContext.cs.
+All entity models are stored inside Domain/Entities folder.
+
+New entities should be created in that folder and added to AppDbContext.cs if needed. Any relations should be solved using proper relations convention on a model.
+
 ## Testing the components in the application
 
-We require unit-tests written in XUnit in the `MinimalApi20.Tests` project.
+We require unit-tests written in XUnit in the `MinimalApi20-vsa.Tests` project.
 The directory structure for the test project mirrors the structure of the agent project. This makes it easier
 for us to find the test cases later.
 
